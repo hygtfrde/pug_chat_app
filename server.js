@@ -31,6 +31,34 @@ app.use(session({
   cookie: { secure: false }
 }));
 
+myDB(async client => {
+  const myDataBase = await client.db('database').collection('users');
+
+  app.route('/').get( (req, res) => {
+    res.render('pug', {
+      title: 'Connected to Database',
+      message: 'Please login'
+    });
+  });
+
+  // Serialization
+  passport.serializeUser( (user, done)=>{
+    done(null, user._id); 
+  });
+  // Deserialization
+  passport.deserializeUser( (id, done)=>{
+    myDataBase.findOne( ({_id: new ObjectID(id)}), (error, doc)=>{
+      done(null, doc); 
+    })
+  });
+
+}).catch(e => {
+  app.route('/').get((req, res) => {
+    res.render('pug', { title: e, message: 'Unable to login' });
+  });
+});
+// app.listen
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Listening on port ' + PORT);
