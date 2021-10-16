@@ -6,6 +6,7 @@ const passport = require('passport');
 const myDB = require('./connection');
 const fccTesting = require('./freeCodeCamp/fcctesting.js');
 const ObjectID = require('mongodb').ObjectID;
+const LocalStrategy = require('passport-local');
 
 const app = express();
 app.set('view engine', 'pug'); 
@@ -15,11 +16,11 @@ app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/*
+/* ------- remove basic GET route -------
 app.route('/').get((req, res) => {
   // pass vars to Pug as second arg 
   res.render(process.cwd()+'/views/pug', {title: 'Hello', message: 'Please login'});
-});
+}); -------------------------------------
 */
 
 app.use(session({
@@ -32,8 +33,21 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// --------------------- CONNECT DB ---------------------
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
+
+  passport.use(new LocalStrategy(
+    function(username, password, done) {
+      myDataBase.findOne({ username: username }, function (err, user) {
+        console.log('User '+ username +' attempted to log in.');
+        if (err) { return done(err); }
+        if (!user) { return done(null, false); }
+        if (password !== user.password) { return done(null, false); }
+        return done(null, user);
+      });
+    }
+  ));
 
   app.route('/').get( (req, res) => {
     res.render('pug', {
@@ -59,6 +73,7 @@ myDB(async client => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
 });
+// ------------------------------------------------------
 
 // app.listen
 
