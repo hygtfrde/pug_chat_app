@@ -4,21 +4,26 @@
  div=var_name 
 html
   head
-    title FCC Advanced Node and Express
+    title Pug Chat App 
     meta(name='description', content='Home page')
     meta(charset='utf-8')
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel='stylesheet', href='/public/style.css')
+  article 
+    header 
+      h1.center Pug Chat App 
+      h3.center Chat with your friends with Socket.IO and Pug
+      p.center Pug uses the server to dynamically render your HTML 
+      p.center ... learn more at FCC (https://www.freecodecamp.org/learn/)
   body
-    h1.border.center FCC Advanced Node and Express
-    h2.center#pug-success-message
-    | Looks like this page is being rendered from Pug into HTML!
+    h3.border.center Connect 
+    h3.center#pug-success-message
+    text Looks like this page is being rendered from Pug into HTML! 
     | #{title}
     p#pug-variable=message
     
-    
-    
+
     if showLogin
       hr
       h2.center Login Form
@@ -50,3 +55,10 @@ html
       h2.center Social Login
       .login.center
         a(href='/auth/github').text Login with Github!
+
+    br 
+    footer 
+      hr 
+      p.center Author: Pug Chat App
+      p.center.a(href="mailto:contact@pugchatapp.example").text contact@pugchatapp.example
+      hr 
