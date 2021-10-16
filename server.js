@@ -8,21 +8,19 @@ const fccTesting = require('./freeCodeCamp/fcctesting.js');
 const ObjectID = require('mongodb').ObjectID;
 
 const app = express();
+app.set('view engine', 'pug'); 
 
 fccTesting(app); //For FCC testing purposes
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.set('view engine', 'pug'); 
-
+/*
 app.route('/').get((req, res) => {
   // pass vars to Pug as second arg 
   res.render(process.cwd()+'/views/pug', {title: 'Hello', message: 'Please login'});
 });
+*/
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -30,6 +28,9 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false }
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
@@ -42,6 +43,7 @@ myDB(async client => {
   });
 
   // Serialization
+  // _id
   passport.serializeUser( (user, done)=>{
     done(null, user._id); 
   });
@@ -57,6 +59,7 @@ myDB(async client => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
 });
+
 // app.listen
 
 const PORT = process.env.PORT || 3000;
