@@ -7,6 +7,7 @@ const myDB = require('./connection');
 const fccTesting = require('./freeCodeCamp/fcctesting.js');
 const ObjectID = require('mongodb').ObjectID;
 const LocalStrategy = require('passport-local');
+const bcrypt = require('bcrypt'); 
 
 const app = express();
 app.set('view engine', 'pug'); 
@@ -45,18 +46,6 @@ function ensureAuthenticated(req, res, next) {
 // --------------------- CONNECT DB ---------------------
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
-
-  passport.use(new LocalStrategy(
-    function(username, password, done) {
-      myDataBase.findOne({ username: username }, function (err, user) {
-        console.log('User '+ username +' attempted to log in.');
-        if (err) { return done(err); }
-        if (!user) { return done(null, false); }
-        if (password !== user.password) { return done(null, false); }
-        return done(null, user);
-      });
-    }
-  ));
 
   app.route('/').get( (req, res) => {
     res.render('pug', {
@@ -97,6 +86,8 @@ myDB(async client => {
 
   app.route('/register')
   .post((req, res, next) => {
+    const hash = bcrypt.hashSync(req.body.password, 12);
+
     myDataBase.findOne({ username: req.body.username }, function(err, user) {
       if (err) {
         next(err);
@@ -105,7 +96,7 @@ myDB(async client => {
       } else {
         myDataBase.insertOne({
           username: req.body.username,
-          password: req.body.password
+          password: hash 
         },
           (err, doc) => {
             if (err) {
@@ -137,6 +128,19 @@ myDB(async client => {
       done(null, doc); 
     })
   });
+  passport.use(new LocalStrategy(
+    function(username, password, done) {
+      myDataBase.findOne({ username: username }, function (err, user) {
+        console.log('User '+ username +' attempted to log in.');
+        if (err) { return done(err); }
+        if (!user) { return done(null, false); }
+        if (!bcrypt.compareSync(password, user.password)) { 
+          return done(null, false);
+        }
+        return done(null, user);
+      });
+    }
+  ));
 
 }).catch(e => {
   app.route('/').get((req, res) => {
