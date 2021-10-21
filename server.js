@@ -33,6 +33,15 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// --------------- Authenticator Function ---------------
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
+
 // --------------------- CONNECT DB ---------------------
 myDB(async client => {
   const myDataBase = await client.db('database').collection('users');
@@ -62,9 +71,11 @@ myDB(async client => {
       res.redirect('/profile'); 
     }
   )
-  app.route('/profile').get( (req,res)=>{
-    res.render(process.cwd()+'/views/pug/profile'); 
-  })
+  app
+  .route('/profile')
+  .get(ensureAuthenticated, (req,res) => {
+     res.render(process.cwd() + '/views/pug/profile');
+  });
 
   // Serialization
   // _id
